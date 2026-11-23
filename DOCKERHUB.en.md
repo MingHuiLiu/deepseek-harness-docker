@@ -48,7 +48,7 @@ The WebSocket realtime channels (`/api/events.mux`, `/api/events.host`) are forw
 
 | Tag | Purpose | Included tools |
 |---|---|---|
-| `latest` | Slim runtime image | None (only Node runtime + DSH + reverse proxy) |
+| `latest` | Slim runtime image | No dev tools (pnpm pre-installed; Node runtime + DSH + reverse proxy) |
 | `devtools-min-latest` | Minimal tools for common debugging | git, curl, wget, nano, jq, procps, ca-certificates, unzip; npm globals: pnpm; uv |
 | `devtools-latest` | Full tools for developing/compiling inside the container | everything in Minimal + vim, openssh-client, zip, htop, tmux, tree, openssl, python3, build-essential (make/g++), bash-completion; npm globals: pnpm; uv |
 | `admin-latest` | Admin variant: **latest DSH pre-installed**, works out of the box; admin page to pick/install/switch versions | same as Full Tools (pnpm, uv) + manager service; keeps python3/build-essential to compile node-pty at runtime |
@@ -87,7 +87,7 @@ docker run -d \
 
 The run command is identical across all three tags — only the image name (tag) changes. The tooled variants are a bit larger than the slim image, so pick what fits.
 
-The tooled variants (`devtools` / `devtools-min` / `test`) ship with **pnpm** (installed via npm globally). DSH's `dsh plugin` command relies on pnpm to manage plugins, and the community plugin market [dsh-market](https://github.com/dsh-market/dsh-market) (`dsh plugin --profile web add dshmarket`) needs it too. The slim `latest` does not bundle it — on first plugin use, dsh-market detects the missing pnpm and offers one-click automatic setup.
+**All image variants, including the slim `latest` image, come with pnpm pre-installed globally via npm.** DSH's `dsh plugin` command relies on pnpm to manage plugins, and the community plugin market [dsh-market](https://github.com/dsh-market/dsh-market) (`dsh plugin --profile web add dshmarket`) needs it too.
 
 They also ship **uv** (Python package manager, static binary, no system Python required). Many community MCP servers launch via `uvx` / `uv run` (commonly seen in DSH MCP client configs as `"command": "uvx"`) — without uv those MCPs cannot run.
 
@@ -133,6 +133,14 @@ docker run -d \
 ```
 
 > The two images are identical in configuration and usage — only the registry differs, so they are interchangeable.
+
+### Personal GHCR image published by this repository
+
+When this repository's `main` branch is updated, GitHub Actions automatically builds and publishes:
+
+```bash
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
+```
 
 ## Configuration (Environment Variables)
 

@@ -58,6 +58,14 @@ docker rm dsh-harness
 Linux 下 node-pty 没有预编译产物，会从源码编译（Dockerfile 已用多阶段构建装好 python3/make/g++，
 编译完成后运行镜像不保留编译工具）。
 
+## GitHub Container Registry（GHCR）个人镜像
+
+本仓库的 `main` 分支更新后会通过 GitHub Actions 自动构建并发布：
+
+```bash
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
+```
+
 ## 各 tag 的区别
 
 默认运行镜像为精简版，不保留编译工具，适合生产部署。若需要在容器内开发/调试，
@@ -69,7 +77,7 @@ Linux 下 node-pty 没有预编译产物，会从源码编译（Dockerfile 已�
 
 | tag（最新） | 版本 tag | 定位 | 包含工具 |
 |---|---|---|---|
-| `smanx/deepseek-harness:latest` | `smanx/deepseek-harness:<版本>` | 原版精简镜像，适合生产部署 | 无开发工具 |
+| `smanx/deepseek-harness:latest` | `smanx/deepseek-harness:<版本>` | 原版精简镜像，适合生产部署 | 无开发工具（预装 pnpm） |
 | `smanx/deepseek-harness:devtools-min-latest` | `smanx/deepseek-harness:devtools-min-<版本>` | 精简工具版，常用调试工具 | git、curl、wget、nano、jq、procps、ca-certificates、unzip；npm 全局包：pnpm；uv |
 | `smanx/deepseek-harness:devtools-latest` | `smanx/deepseek-harness:devtools-<版本>` | 完整工具版，可在容器内开发/编译 | 精简版全部 + vim、openssh-client、zip、htop、tmux、tree、openssl、python3、build-essential(make+g++)、bash-completion；npm 全局包：pnpm；uv |
 | `smanx/deepseek-harness:test-latest` | `smanx/deepseek-harness:test-<版本>` | 测试 tag：完整工具 + 自动安装 DSH 插件 | 同完整工具版（含 pnpm、uv）；DSH 安装后额外执行 `dsh plugin --profile web add github:smanx/dsh-conversation-indicator#main` |
@@ -91,10 +99,7 @@ docker build -t smanx/deepseek-harness:devtools-<版本> --build-arg DEV_TOOLS=d
 > 版本号随 `@deepseek-ai/dsh` 实际版本更新，例如升级到 `0.2.0` 后 tag 应改为
 > `devtools-0.2.0` / `devtools-min-0.2.0`。
 
-> 工具版（devtools / devtools-min / test）内置 **pnpm**（npm 全局安装），
-> DSH 的 `dsh plugin` 命令依赖 pnpm 管理插件，社区插件市场 [dsh-market](https://github.com/dsh-market/dsh-market)
-> （`dsh plugin --profile web add dshmarket`）也需要它；精简版 `latest` 不内置，首次使用插件时
-> dsh-market 会检测缺失并提供一键自动安装。
+> **所有镜像（包括精简版 `latest`）均预装 pnpm**（通过 npm 全局安装）。DSH 的 `dsh plugin` 命令依赖 pnpm 管理插件，社区插件市场 [dsh-market](https://github.com/dsh-market/dsh-market)（`dsh plugin --profile web add dshmarket`）也需要它。
 >
 > 工具版还内置 **uv**（Python 包管理器，静态二进制，不依赖系统 Python）。
 > 不少社区 MCP server 以 `uvx` / `uv run` 方式启动（DSH 的 MCP 客户端配置中常见

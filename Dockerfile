@@ -37,6 +37,10 @@ ARG DEV_TOOLS=none
 # /usr/local 内容一致，仅多出 npm 全局安装的 @deepseek-ai/dsh
 COPY --from=dsh-builder /usr/local/ /usr/local/
 
+# 所有镜像（包括默认精简版）均预装 pnpm，供 DSH 插件管理与 dsh-market 使用
+RUN npm install -g --no-audit --no-fund pnpm \
+    && pnpm --version
+
 # admin 变体：把构建阶段预装的最新 DSH 复制到管理服务安装目录 /opt/dsh
 # （首次挂载空卷时 Docker 自动填充该目录，管理服务启动即识别并自动拉起 DSH）
 COPY --from=dsh-builder /opt/dsh/ /opt/dsh/

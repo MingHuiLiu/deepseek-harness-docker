@@ -58,6 +58,14 @@ Building installs DSH via npm (~250MB of dependencies), so the first build is sl
 On Linux, node-pty has no prebuilt binaries and is compiled from source (the Dockerfile uses a
 multi-stage build with python3/make/g++ installed; the runtime image does not keep the build tools).
 
+## Personal GitHub Container Registry (GHCR) Image
+
+When this repository's `main` branch is updated, GitHub Actions builds and publishes:
+
+```bash
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
+```
+
 ## Differences Between the Tags
 
 The default runtime image is slim and does not keep build tools, suitable for production. If you
@@ -70,7 +78,7 @@ matches the `@deepseek-ai/dsh` version actually installed at build time, current
 
 | Tag (latest) | Version tag | Purpose | Included tools |
 |---|---|---|---|
-| `smanx/deepseek-harness:latest` | `smanx/deepseek-harness:<version>` | Original slim image, production-ready | No dev tools |
+| `smanx/deepseek-harness:latest` | `smanx/deepseek-harness:<version>` | Original slim image, production-ready | No dev tools (pnpm pre-installed) |
 | `smanx/deepseek-harness:devtools-min-latest` | `smanx/deepseek-harness:devtools-min-<version>` | Minimal tools for common debugging | git, curl, wget, nano, jq, procps, ca-certificates, unzip; npm globals: pnpm; uv |
 | `smanx/deepseek-harness:devtools-latest` | `smanx/deepseek-harness:devtools-<version>` | Full tools for developing/compiling inside the container | everything in Minimal + vim, openssh-client, zip, htop, tmux, tree, openssl, python3, build-essential (make/g++), bash-completion; npm globals: pnpm; uv |
 | `smanx/deepseek-harness:test-latest` | `smanx/deepseek-harness:test-<version>` | Test tag: full tools + auto-installs DSH plugins | same as Full Tools (pnpm, uv); additionally runs `dsh plugin --profile web add github:smanx/dsh-conversation-indicator#main` after DSH install |
@@ -93,11 +101,7 @@ docker build -t smanx/deepseek-harness:devtools-<version> --build-arg DEV_TOOLS=
 > `dsh-builder` stage into the runtime image. The version follows the actual `@deepseek-ai/dsh`
 > release; e.g. after upgrading to `0.2.0`, change the tags to `devtools-0.2.0` / `devtools-min-0.2.0`.
 
-> The tooled variants (devtools / devtools-min / test) bundle **pnpm** (installed globally via npm).
-> DSH's `dsh plugin` command relies on pnpm to manage plugins, and the community plugin market
-> [dsh-market](https://github.com/dsh-market/dsh-market) (`dsh plugin --profile web add dshmarket`)
-> needs it too. The slim `latest` does not bundle it — on first plugin use, dsh-market detects the
-> missing pnpm and offers one-click automatic installation.
+> **All image variants, including the slim `latest` image, come with pnpm pre-installed globally via npm.** DSH's `dsh plugin` command relies on pnpm to manage plugins, and the community plugin market [dsh-market](https://github.com/dsh-market/dsh-market) (`dsh plugin --profile web add dshmarket`) needs it too.
 >
 > The tooled variants also bundle **uv** (Python package manager, static binary, no system Python
 > required). Many community MCP servers launch via `uvx` / `uv run` (commonly seen in DSH MCP

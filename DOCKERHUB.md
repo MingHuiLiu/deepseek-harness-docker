@@ -49,7 +49,7 @@ WebSocket 实时通道（`/api/events.mux`、`/api/events.host`）由代理自�
 
 | tag | 定位 | 包含工具 |
 |---|---|---|
-| `latest` | 精简运行镜像 | 无（仅 Node 运行时 + DSH + 反向代理） |
+| `latest` | 精简运行镜像 | 无开发工具（预装 pnpm；仅 Node 运行时 + DSH + 反向代理） |
 | `devtools-min-latest` | 精简工具版，常用调试工具 | git、curl、wget、nano、jq、procps、ca-certificates、unzip；npm 全局包：pnpm；uv |
 | `devtools-latest` | 完整工具版，可在容器内开发/编译 | 精简版全部 + vim、openssh-client、zip、htop、tmux、tree、openssl、python3、build-essential(make+g++)、bash-completion；npm 全局包：pnpm；uv |
 | `admin-latest` | 管理版：**预装最新 DSH**，开箱即用，页面自选版本安装/切换 | 同完整工具版（含 pnpm、uv）+ 管理服务；保留 python3/build-essential 供运行时编译 node-pty |
@@ -86,9 +86,7 @@ docker run -d \
 
 三个 tag 的启动命令完全一样，只是把镜像名替换成对应的 tag 即可；`latest` 之外的工具版镜像会比精简版略大，按需选择。
 
-> 工具版（devtools / devtools-min / test）内置 **pnpm**（npm 全局安装）。DSH 的 `dsh plugin` 命令依赖 pnpm 管理插件，
-> 社区插件市场 [dsh-market](https://github.com/dsh-market/dsh-market)（`dsh plugin --profile web add dshmarket`）也需要它；
-> 精简版 `latest` 不内置，首次使用插件时 dsh-market 会检测缺失并提供一键自动安装。
+> **所有镜像（包括精简版 `latest`）均预装 pnpm**（通过 npm 全局安装）。DSH 的 `dsh plugin` 命令依赖 pnpm 管理插件，社区插件市场 [dsh-market](https://github.com/dsh-market/dsh-market)（`dsh plugin --profile web add dshmarket`）也需要它。
 >
 > 工具版还内置 **uv**（Python 包管理器，静态二进制，不依赖系统 Python）。不少社区 MCP server 以
 > `uvx` / `uv run` 方式启动（DSH 的 MCP 客户端配置中常见 `"command": "uvx"`），缺少 uv 时这类 MCP 无法运行。
@@ -133,6 +131,14 @@ docker run -d \
 ```
 
 > 除镜像地址不同外，两个镜像的配置与使用方式完全一致，可互相替换。
+
+### 本仓库发布的个人 GHCR 镜像
+
+本仓库的 `main` 分支更新后，GitHub Actions 会自动构建并发布：
+
+```bash
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
+```
 
 ## 配置（环境变量）
 
