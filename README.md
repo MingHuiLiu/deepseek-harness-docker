@@ -60,12 +60,22 @@ Linux 下 node-pty 没有预编译产物，会从源码编译（Dockerfile 已�
 
 ## GitHub Container Registry（GHCR）个人镜像
 
-本仓库的 `main` 分支更新后会通过 GitHub Actions 自动构建并发布：
+本仓库的 `main` 分支更新后会通过 GitHub Actions 为以下四种变体分别构建并发布 AMD64 / ARM64 镜像：
+
+| 变体 | 滚动标签 | 固定版本标签 |
+|---|---|---|
+| `none` 精简版 | `latest` | `0.2.3-alpha.2` |
+| `devtools` 完整工具版 | `devtools-latest` | `devtools-0.2.3-alpha.2` |
+| `test` 测试版 | `test-latest` | `test-0.2.3-alpha.2` |
+| `admin` 管理版 | `admin-latest` | `admin-0.2.3-alpha.2` |
+
+例如：
 
 ```bash
 docker pull ghcr.io/minghuiliu/deepseek-harness-docker:0.2.3-alpha.2
-# 或拉取滚动标签
-docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:devtools-0.2.3-alpha.2
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:test-0.2.3-alpha.2
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:admin-0.2.3-alpha.2
 ```
 
 ## 各 tag 的区别
@@ -82,7 +92,7 @@ docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
 | `smanx/deepseek-harness:latest` | `smanx/deepseek-harness:<版本>` | 原版精简镜像，适合生产部署 | 无开发工具（预装 pnpm） |
 | `smanx/deepseek-harness:devtools-min-latest` | `smanx/deepseek-harness:devtools-min-<版本>` | 精简工具版，常用调试工具 | git、curl、wget、nano、jq、procps、ca-certificates、unzip；npm 全局包：pnpm；uv |
 | `smanx/deepseek-harness:devtools-latest` | `smanx/deepseek-harness:devtools-<版本>` | 完整工具版，可在容器内开发/编译 | 精简版全部 + vim、openssh-client、zip、htop、tmux、tree、openssl、python3、build-essential(make+g++)、bash-completion；npm 全局包：pnpm；uv |
-| `smanx/deepseek-harness:test-latest` | `smanx/deepseek-harness:test-<版本>` | 测试 tag：完整工具 + 自动安装 DSH 插件 | 同完整工具版（含 pnpm、uv）；DSH 安装后额外执行 `dsh plugin --profile web add github:smanx/dsh-conversation-indicator#main` |
+| `smanx/deepseek-harness:test-latest` | `smanx/deepseek-harness:test-<版本>` | 测试 tag：完整工具 + 自动安装 DSH 插件 | 同完整工具版（含 pnpm、uv）；DSH 安装后额外执行 `dsh plugin --profile web add github:smanx/dsh-fixed-providers#master` |
 | `smanx/deepseek-harness:admin-latest` | `smanx/deepseek-harness:admin-<版本>` | 管理版：**预装 DSH 0.2.3-alpha.2**，开箱即用，管理台可自选版本安装/切换 | 同完整工具版（含 pnpm、uv）+ 管理服务；保留 python3/build-essential 供运行时编译 node-pty |
 
 ```bash

@@ -1,4 +1,4 @@
-name: Publish GHCR image
+name: Publish GHCR images
 
 on:
   push:
@@ -24,7 +24,24 @@ concurrency:
 jobs:
   build-and-push:
     if: github.ref == 'refs/heads/main'
+    name: Build ${{ matrix.variant }} image
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: none
+            rolling_tag: latest
+            version_tag: 0.2.3-alpha.2
+          - variant: devtools
+            rolling_tag: devtools-latest
+            version_tag: devtools-0.2.3-alpha.2
+          - variant: test
+            rolling_tag: test-latest
+            version_tag: test-0.2.3-alpha.2
+          - variant: admin
+            rolling_tag: admin-latest
+            version_tag: admin-0.2.3-alpha.2
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,9 +67,9 @@ jobs:
         with:
           images: ghcr.io/minghuiliu/deepseek-harness-docker
           tags: |
-            type=raw,value=latest
-            type=raw,value=0.2.3-alpha.2
-            type=sha,prefix=sha-
+            type=raw,value=${{ matrix.rolling_tag }}
+            type=raw,value=${{ matrix.version_tag }}
+            type=sha,prefix=${{ matrix.rolling_tag }}-sha-
 
       - name: Build and push multi-platform image
         uses: docker/build-push-action@v6
@@ -60,6 +77,10 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+            DEV_TOOLS=${{ matrix.variant }}
+            DSH_VERSION=0.2.3-alpha.2
+            PNPM_VERSION=11.28.5
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha

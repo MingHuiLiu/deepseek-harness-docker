@@ -40,7 +40,7 @@ ARG PNPM_VERSION=11.28.5
 COPY --from=dsh-builder /usr/local/ /usr/local/
 
 # 所有镜像（包括默认精简版）均预装 pnpm，供 DSH 插件管理与 dsh-market 使用
-RUN npm install -g --no-audit --no-fund "pnpm@11.28.5" \
+RUN npm install -g --no-audit --no-fund "pnpm@${PNPM_VERSION}" \
     && pnpm --version
 
 # admin 变体：把构建阶段预装的 DSH 0.2.3-alpha.2 复制到管理服务安装目录 /opt/dsh
@@ -92,7 +92,7 @@ RUN if [ -n "$DEV_TOOLS" ] && [ "$DEV_TOOLS" != "none" ]; then \
       fi; \
     fi
 
-# ── 特殊测试 tag（DEV_TOOLS=test）：DSH 安装完毕后额外安装插件 ────────
+# ── 特殊测试 tag（DEV_TOOLS=test）：DSH 安装完毕后额外安装 fixed-providers 插件 ──
 RUN if [ "$DEV_TOOLS" = "test" ]; then \
       dsh plugin --profile web add github:smanx/dsh-fixed-providers#master; \
     fi

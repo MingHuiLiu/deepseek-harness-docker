@@ -136,12 +136,20 @@ docker run -d \
 
 ### Personal GHCR image published by this repository
 
-When this repository's `main` branch is updated, GitHub Actions automatically builds and publishes:
+When this repository's `main` branch is updated, GitHub Actions automatically builds and publishes all four variants (AMD64 / ARM64):
+
+| Variant | Rolling tag | Pinned version tag |
+|---|---|---|
+| `none` | `latest` | `0.2.3-alpha.2` |
+| `devtools` | `devtools-latest` | `devtools-0.2.3-alpha.2` |
+| `test` | `test-latest` | `test-0.2.3-alpha.2` |
+| `admin` | `admin-latest` | `admin-0.2.3-alpha.2` |
 
 ```bash
-docker pull ghcr.io/minghuiliu/deepseek-harness-docker:0.2.3-alpha.2
-# or use the rolling tag
 docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:devtools-latest
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:test-latest
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:admin-latest
 ```
 
 ## Configuration (Environment Variables)

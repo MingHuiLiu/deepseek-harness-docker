@@ -60,12 +60,22 @@ multi-stage build with python3/make/g++ installed; the runtime image does not ke
 
 ## Personal GitHub Container Registry (GHCR) Image
 
-When this repository's `main` branch is updated, GitHub Actions builds and publishes:
+When this repository's `main` branch is updated, GitHub Actions builds and publishes AMD64 / ARM64 images for all four variants:
+
+| Variant | Rolling tag | Pinned version tag |
+|---|---|---|
+| `none` slim | `latest` | `0.2.3-alpha.2` |
+| `devtools` full tools | `devtools-latest` | `devtools-0.2.3-alpha.2` |
+| `test` | `test-latest` | `test-0.2.3-alpha.2` |
+| `admin` | `admin-latest` | `admin-0.2.3-alpha.2` |
+
+For example:
 
 ```bash
 docker pull ghcr.io/minghuiliu/deepseek-harness-docker:0.2.3-alpha.2
-# or use the rolling tag
-docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:devtools-0.2.3-alpha.2
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:test-0.2.3-alpha.2
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:admin-0.2.3-alpha.2
 ```
 
 ## Differences Between the Tags
@@ -83,7 +93,7 @@ matches the `@deepseek-ai/dsh` version actually installed at build time, current
 | `smanx/deepseek-harness:latest` | `smanx/deepseek-harness:<version>` | Original slim image, production-ready | No dev tools (pnpm pre-installed) |
 | `smanx/deepseek-harness:devtools-min-latest` | `smanx/deepseek-harness:devtools-min-<version>` | Minimal tools for common debugging | git, curl, wget, nano, jq, procps, ca-certificates, unzip; npm globals: pnpm; uv |
 | `smanx/deepseek-harness:devtools-latest` | `smanx/deepseek-harness:devtools-<version>` | Full tools for developing/compiling inside the container | everything in Minimal + vim, openssh-client, zip, htop, tmux, tree, openssl, python3, build-essential (make/g++), bash-completion; npm globals: pnpm; uv |
-| `smanx/deepseek-harness:test-latest` | `smanx/deepseek-harness:test-<version>` | Test tag: full tools + auto-installs DSH plugins | same as Full Tools (pnpm, uv); additionally runs `dsh plugin --profile web add github:smanx/dsh-conversation-indicator#main` after DSH install |
+| `smanx/deepseek-harness:test-latest` | `smanx/deepseek-harness:test-<version>` | Test tag: full tools + auto-installs DSH plugins | same as Full Tools (pnpm, uv); additionally runs `dsh plugin --profile web add github:smanx/dsh-fixed-providers#master` after DSH install |
 | `smanx/deepseek-harness:admin-latest` | `smanx/deepseek-harness:admin-<version>` | Admin variant: **DSH 0.2.3-alpha.2 pre-installed**, works out of the box; admin page to pick/install/switch versions | same as Full Tools (pnpm, uv) + manager service; keeps python3/build-essential to compile node-pty at runtime |
 
 ```bash

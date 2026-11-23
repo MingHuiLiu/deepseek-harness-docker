@@ -7,11 +7,11 @@
 #   第四列 = 1 → 官方 install.sh 安装 uv（Python 包管理器，MCP 的 uvx/uv run 启动方式依赖）
 # 需要增删工具时，直接编辑下面各行即可，无需改动打包脚本和 Dockerfile。
 # 特殊前缀 test：除安装下列工具外，Dockerfile 还会在 DSH 安装完毕后额外安装
-# dsh 插件（dsh plugin --profile web add github:smanx/dsh-conversation-indicator#main）。
+# fixed-providers 插件（dsh plugin --profile web add github:smanx/dsh-fixed-providers#master）。
 test|git curl wget nano jq procps ca-certificates unzip vim openssh-client zip htop tmux tree openssl python3 build-essential bash-completion||1
 admin|git curl wget nano jq procps ca-certificates unzip vim openssh-client zip htop tmux tree openssl python3 build-essential bash-completion||1
 devtools|git curl wget nano jq procps ca-certificates unzip vim openssh-client zip htop tmux tree openssl python3 build-essential bash-completion||1
 devtools-min|git curl wget nano jq procps ca-certificates unzip||1
-# admin 变体：默认预装最新 DSH（@next，随镜像打包，开箱即用），管理台仍可自选版本安装/切换、配置 npm 源。
+# admin 变体：预装 Dockerfile 中 DSH_VERSION 指定的版本（当前 0.2.3-alpha.2，随镜像打包，开箱即用），管理台仍可自选版本安装/切换、配置 npm 源。
 # 必须保留 python3/build-essential（管理台运行时安装其他版本 DSH 需编译原生模块 node-pty）；
 # 该变体运行入口为 manager 管理服务（entrypoint.sh 依据 /app/.admin-mode 标记分发）。

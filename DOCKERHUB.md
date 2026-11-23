@@ -134,12 +134,20 @@ docker run -d \
 
 ### 本仓库发布的个人 GHCR 镜像
 
-本仓库的 `main` 分支更新后，GitHub Actions 会自动构建并发布：
+本仓库的 `main` 分支更新后，GitHub Actions 会自动构建并发布四种变体（AMD64 / ARM64）：
+
+| 变体 | 滚动标签 | 固定版本标签 |
+|---|---|---|
+| `none` | `latest` | `0.2.3-alpha.2` |
+| `devtools` | `devtools-latest` | `devtools-0.2.3-alpha.2` |
+| `test` | `test-latest` | `test-0.2.3-alpha.2` |
+| `admin` | `admin-latest` | `admin-0.2.3-alpha.2` |
 
 ```bash
-docker pull ghcr.io/minghuiliu/deepseek-harness-docker:0.2.3-alpha.2
-# 或拉取滚动标签
 docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:devtools-latest
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:test-latest
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:admin-latest
 ```
 
 ## 配置（环境变量）
