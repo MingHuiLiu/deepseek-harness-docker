@@ -17,7 +17,7 @@ Docker 化部署 **DeepSeek Harness（DSH）** + **Node 反向代理**：
 
 ```
 deepseek-harness/
-├── Dockerfile            # node:24-slim + 安装 DSH + 代理（支持 DEV_TOOLS 构建参数；admin 变体预装最新 DSH）
+├── Dockerfile            # node:24.22.3-slim + 安装 DSH 0.2.3-alpha.2 + 代理（admin 变体预装同版本）
 ├── entrypoint.sh         # 先启动 DSH，等待就绪，再启动代理（检测到 admin 变体标记则改走管理服务）
 ├── proxy/
 │   ├── index.js          # 代理（转发 + polyfill 注入 + Origin 对齐 + Basic Auth）
@@ -63,6 +63,8 @@ Linux 下 node-pty 没有预编译产物，会从源码编译（Dockerfile 已�
 本仓库的 `main` 分支更新后会通过 GitHub Actions 自动构建并发布：
 
 ```bash
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:0.2.3-alpha.2
+# 或拉取滚动标签
 docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
 ```
 
@@ -81,7 +83,7 @@ docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
 | `smanx/deepseek-harness:devtools-min-latest` | `smanx/deepseek-harness:devtools-min-<版本>` | 精简工具版，常用调试工具 | git、curl、wget、nano、jq、procps、ca-certificates、unzip；npm 全局包：pnpm；uv |
 | `smanx/deepseek-harness:devtools-latest` | `smanx/deepseek-harness:devtools-<版本>` | 完整工具版，可在容器内开发/编译 | 精简版全部 + vim、openssh-client、zip、htop、tmux、tree、openssl、python3、build-essential(make+g++)、bash-completion；npm 全局包：pnpm；uv |
 | `smanx/deepseek-harness:test-latest` | `smanx/deepseek-harness:test-<版本>` | 测试 tag：完整工具 + 自动安装 DSH 插件 | 同完整工具版（含 pnpm、uv）；DSH 安装后额外执行 `dsh plugin --profile web add github:smanx/dsh-conversation-indicator#main` |
-| `smanx/deepseek-harness:admin-latest` | `smanx/deepseek-harness:admin-<版本>` | 管理版：**预装最新 DSH**，开箱即用，管理台可自选版本安装/切换 | 同完整工具版（含 pnpm、uv）+ 管理服务；保留 python3/build-essential 供运行时编译 node-pty |
+| `smanx/deepseek-harness:admin-latest` | `smanx/deepseek-harness:admin-<版本>` | 管理版：**预装 DSH 0.2.3-alpha.2**，开箱即用，管理台可自选版本安装/切换 | 同完整工具版（含 pnpm、uv）+ 管理服务；保留 python3/build-essential 供运行时编译 node-pty |
 
 ```bash
 # 精简工具版（DEV_TOOLS=前缀与 .build-variants 第一列一致）
@@ -105,9 +107,9 @@ docker build -t smanx/deepseek-harness:devtools-<版本> --build-arg DEV_TOOLS=d
 > 不少社区 MCP server 以 `uvx` / `uv run` 方式启动（DSH 的 MCP 客户端配置中常见
 > `"command": "uvx"`），缺少 uv 时这类 MCP 无法运行；uv 会在首次使用时按需下载 Python 解释器。
 
-### admin 变体（管理版，预装最新 DSH）
+### admin 变体（管理版，预装 DSH 0.2.3-alpha.2）
 
-`admin` 变体**随镜像预装最新 DSH（@next）**，容器启动后管理服务自动识别并拉起 DSH，直接访问 `/` 即可进入 DSH 界面；
+`admin` 变体**随镜像预装 DSH 0.2.3-alpha.2**，容器启动后管理服务自动识别并拉起 DSH，直接访问 `/` 即可进入 DSH 界面；
 访问 `/__admin/` 进入管理台，你可以在页面上：
 
 - 查看 npm 包 `@deepseek-ai/dsh` 的可用版本（`latest`/`next` 等 dist-tag + 全部版本列表），
@@ -133,7 +135,7 @@ docker run -d \
 
 > admin 变体保留了 `python3` + `build-essential`：node-pty 在 Linux 上没有预编译产物，
 > 在管理台安装其他版本 DSH 时需要容器内从源码编译原生模块，因此该镜像比精简版略大。
-> admin 变体预装最新 DSH，版本号 tag 即为 DSH 版本（如 `admin-0.1.1`）。
+> admin 变体预装 DSH 0.2.3-alpha.2，版本号 tag 即为 DSH 版本（如 `admin-0.2.3-alpha.2`）。
 
 ## 端口配置
 
@@ -201,7 +203,7 @@ DSH 的会话/配置数据保存在命名卷 `dsh-data`（容器内 `/root/.dsh`
 ## 说明
 
 - DSH 官方禁止 `--host 0.0.0.0`，因此容器内 DSH 保持默认回环监听，代理负责对外；
-- 若 `node:24-slim` 下 DSH 因缺少系统库启动失败，可将 Dockerfile 两个阶段的基础镜像都改为 `node:24` 再构建；
+- 若 `node:24.22.3-slim` 下 DSH 因缺少系统库启动失败，可将 Dockerfile 两个阶段的基础镜像都改为 `node:24` 再构建；
 - 代理逻辑与独立版 [dsh-proxy](https://github.com/smanx/dsh-proxy) 一致（polyfill 注入、Origin 对齐、Basic Auth、WS 转发）。
 - DSH 前端用 `connection.isLoopback` 决定设置类功能是否可用（设置里的插件配置卡片、设置文件按钮等），
   且只把 `localhost`/`127.x.x.x` 等回环主机名算作 loopback。通过主机名/局域网 IP 访问时这些功能会被隐藏

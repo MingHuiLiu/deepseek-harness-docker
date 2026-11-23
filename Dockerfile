@@ -1,47 +1,49 @@
-# DSH（DeepSeek Harness）需要 Node.js；官方 npm 包 @deepseek-ai/dsh 已验证可在 Node 24 运行
-# （官方以 Node 24.19.0 构建/验证）
+# DSH v0.2.3-alpha.2 requires Node.js 24.22.3 or later in the 24.x series
+# Pin the official Node image to the minimum supported 24.x release for reproducible builds.
 #
 # 关键点：@deepseek-ai/dsh 依赖的原生模块 node-pty（终端）在 npm 包里只带 macOS/Windows
 # 的预编译产物（prebuilds/ 下仅有 darwin-arm64/darwin-x64/win32-arm64/win32-x64），
 # Linux 上没有任何预编译二进制，安装时必然回退到 node-gyp 从源码编译，需要
-# python3 + make + g++。node:24-slim 不含这些工具，直接 `npm install -g @deepseek-ai/dsh`
+# python3 + make + g++。node:24.22.3-slim 不含这些工具，直接 `npm install -g @deepseek-ai/dsh`
 # 会报：
 #   gyp ERR! find Python ... Could not find any Python installation to use
 # 因此采用多阶段构建：先在带编译工具的阶段安装 DSH（顺带编译 node-pty），
 # 再把 /usr/local（Node + DSH + 编译产物）复制进精简运行镜像，运行镜像不保留编译工具。
 
 # ── 阶段 1：安装 DSH 并编译原生模块 ────────────────────────────────
-# admin 变体预装最新 DSH（@next）到 /opt/dsh（即管理服务的安装目录，挂载空卷时自动填充、开箱即用）
-FROM node:24-slim AS dsh-builder
+# admin 变体预装 DSH 0.2.3-alpha.2 到 /opt/dsh（挂载空卷时自动填充、开箱即用）
+FROM node:24.22.3-slim AS dsh-builder
 ARG DEV_TOOLS=none
+ARG DSH_VERSION=0.2.3-alpha.2
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 make g++ \
     && rm -rf /var/lib/apt/lists/* \
     && if [ "$DEV_TOOLS" = "admin" ]; then \
-         npm install -g --prefix /opt/dsh --no-audit --no-fund @deepseek-ai/dsh@next; \
+         npm install -g --prefix /opt/dsh --no-audit --no-fund "@deepseek-ai/dsh@${DSH_VERSION}"; \
        else \
-         npm install -g --no-audit --no-fund @deepseek-ai/dsh@next; \
+         npm install -g --no-audit --no-fund "@deepseek-ai/dsh@${DSH_VERSION}"; \
        fi \
     && mkdir -p /opt/dsh
 
 # ── 阶段 2：精简运行镜像 ───────────────────────────────────────────
-FROM node:24-slim
+FROM node:24.22.3-slim
 WORKDIR /app
 
 # 开发工具变体开关：none（默认，不装）| <tag 前缀>（如 devtools / devtools-min）
 # 构建时通过 --build-arg DEV_TOOLS=<前缀> 启用；各前缀要安装的工具由
 # .build-variants 文件按前缀定义，直接编辑该文件即可增删工具
 ARG DEV_TOOLS=none
+ARG PNPM_VERSION=11.28.5
 
-# 复制 Node 运行时 + DSH（含编译好的 node-pty）。两阶段同为 node:24-slim，
+# 复制 Node 运行时 + DSH（含编译好的 node-pty）。两阶段均使用 Node 24.22.3，
 # /usr/local 内容一致，仅多出 npm 全局安装的 @deepseek-ai/dsh
 COPY --from=dsh-builder /usr/local/ /usr/local/
 
 # 所有镜像（包括默认精简版）均预装 pnpm，供 DSH 插件管理与 dsh-market 使用
-RUN npm install -g --no-audit --no-fund pnpm \
+RUN npm install -g --no-audit --no-fund "pnpm@11.28.5" \
     && pnpm --version
 
-# admin 变体：把构建阶段预装的最新 DSH 复制到管理服务安装目录 /opt/dsh
+# admin 变体：把构建阶段预装的 DSH 0.2.3-alpha.2 复制到管理服务安装目录 /opt/dsh
 # （首次挂载空卷时 Docker 自动填充该目录，管理服务启动即识别并自动拉起 DSH）
 COPY --from=dsh-builder /opt/dsh/ /opt/dsh/
 
@@ -66,7 +68,7 @@ COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # admin 变体标记：镜像内存在 /app/.admin-mode 时 entrypoint.sh 改走管理服务
-# （预装最新 DSH，管理台仍可自选版本安装/切换、配置 npm 源）
+# （预装 DSH 0.2.3-alpha.2，管理台仍可自选版本安装/切换、配置 npm 源）
 RUN if [ "$DEV_TOOLS" = "admin" ]; then touch /app/.admin-mode; fi
 
 # ── 开发工具（按 DEV_TOOLS 前缀从 .build-variants 读取工具列表安装）──

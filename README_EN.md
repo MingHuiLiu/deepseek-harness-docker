@@ -17,7 +17,7 @@ Deploy **DeepSeek Harness (DSH)** + **Node reverse proxy** with Docker:
 
 ```
 deepseek-harness/
-├── Dockerfile            # node:24-slim + install DSH + proxy (supports DEV_TOOLS build arg; admin variant pre-installs the latest DSH)
+├── Dockerfile            # node:24.22.3-slim + DSH 0.2.3-alpha.2 + proxy (admin variant pre-installs the same release)
 ├── entrypoint.sh         # start DSH first, wait until ready, then start the proxy (detects the admin variant marker and runs the manager service instead)
 ├── proxy/
 │   ├── index.js          # proxy (forwarding + polyfill injection + Origin alignment + Basic Auth)
@@ -63,6 +63,8 @@ multi-stage build with python3/make/g++ installed; the runtime image does not ke
 When this repository's `main` branch is updated, GitHub Actions builds and publishes:
 
 ```bash
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:0.2.3-alpha.2
+# or use the rolling tag
 docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
 ```
 
@@ -82,7 +84,7 @@ matches the `@deepseek-ai/dsh` version actually installed at build time, current
 | `smanx/deepseek-harness:devtools-min-latest` | `smanx/deepseek-harness:devtools-min-<version>` | Minimal tools for common debugging | git, curl, wget, nano, jq, procps, ca-certificates, unzip; npm globals: pnpm; uv |
 | `smanx/deepseek-harness:devtools-latest` | `smanx/deepseek-harness:devtools-<version>` | Full tools for developing/compiling inside the container | everything in Minimal + vim, openssh-client, zip, htop, tmux, tree, openssl, python3, build-essential (make/g++), bash-completion; npm globals: pnpm; uv |
 | `smanx/deepseek-harness:test-latest` | `smanx/deepseek-harness:test-<version>` | Test tag: full tools + auto-installs DSH plugins | same as Full Tools (pnpm, uv); additionally runs `dsh plugin --profile web add github:smanx/dsh-conversation-indicator#main` after DSH install |
-| `smanx/deepseek-harness:admin-latest` | `smanx/deepseek-harness:admin-<version>` | Admin variant: **latest DSH pre-installed**, works out of the box; admin page to pick/install/switch versions | same as Full Tools (pnpm, uv) + manager service; keeps python3/build-essential to compile node-pty at runtime |
+| `smanx/deepseek-harness:admin-latest` | `smanx/deepseek-harness:admin-<version>` | Admin variant: **DSH 0.2.3-alpha.2 pre-installed**, works out of the box; admin page to pick/install/switch versions | same as Full Tools (pnpm, uv) + manager service; keeps python3/build-essential to compile node-pty at runtime |
 
 ```bash
 # Minimal tools (DEV_TOOLS matches the first column of .build-variants)
@@ -108,9 +110,9 @@ docker build -t smanx/deepseek-harness:devtools-<version> --build-arg DEV_TOOLS=
 > client configs as `"command": "uvx"`); without uv those MCPs cannot run. uv downloads the Python
 > interpreter on demand on first use.
 
-### Admin Variant (latest DSH pre-installed)
+### Admin Variant (DSH 0.2.3-alpha.2 pre-installed)
 
-The `admin` variant **pre-installs the latest DSH (@next)**. After the container starts, the manager
+The `admin` variant **pre-installs DSH 0.2.3-alpha.2**. After the container starts, the manager
 service detects and starts DSH automatically, so `/` serves the DSH UI directly; visiting `/__admin/`
 opens the admin page, where you can:
 
@@ -139,7 +141,7 @@ docker run -d \
 > The admin variant keeps `python3` + `build-essential`: node-pty has no Linux prebuilt binaries,
 > and installing other DSH versions from the page requires compiling the native module from source
 > inside the container, so this image is a bit larger than the slim one. Since the admin variant
-> pre-installs the latest DSH, its version tag is the DSH version (e.g. `admin-0.1.1`).
+> pre-installs DSH 0.2.3-alpha.2, so its version tag is the DSH version (e.g. `admin-0.2.3-alpha.2`).
 
 ## Port Configuration
 
@@ -210,7 +212,7 @@ container first, then `docker volume rm dsh-data`.
 
 - DSH officially forbids `--host 0.0.0.0`, so DSH stays on the loopback interface inside the
   container; the proxy handles external access;
-- If DSH fails to start under `node:24-slim` due to missing system libraries, change the base image
+- If DSH fails to start under `node:24.22.3-slim` due to missing system libraries, change the base image
   of both Dockerfile stages to `node:24` and rebuild;
 - The proxy logic is identical to the standalone [dsh-proxy](https://github.com/smanx/dsh-proxy)
   (polyfill injection, Origin alignment, Basic Auth, WS forwarding).

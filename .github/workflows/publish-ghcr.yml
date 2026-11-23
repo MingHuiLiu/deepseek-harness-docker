@@ -51,6 +51,7 @@ jobs:
           images: ghcr.io/minghuiliu/deepseek-harness-docker
           tags: |
             type=raw,value=latest
+            type=raw,value=0.2.3-alpha.2
             type=sha,prefix=sha-
 
       - name: Build and push multi-platform image

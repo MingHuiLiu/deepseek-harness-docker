@@ -51,9 +51,9 @@ The WebSocket realtime channels (`/api/events.mux`, `/api/events.host`) are forw
 | `latest` | Slim runtime image | No dev tools (pnpm pre-installed; Node runtime + DSH + reverse proxy) |
 | `devtools-min-latest` | Minimal tools for common debugging | git, curl, wget, nano, jq, procps, ca-certificates, unzip; npm globals: pnpm; uv |
 | `devtools-latest` | Full tools for developing/compiling inside the container | everything in Minimal + vim, openssh-client, zip, htop, tmux, tree, openssl, python3, build-essential (make/g++), bash-completion; npm globals: pnpm; uv |
-| `admin-latest` | Admin variant: **latest DSH pre-installed**, works out of the box; admin page to pick/install/switch versions | same as Full Tools (pnpm, uv) + manager service; keeps python3/build-essential to compile node-pty at runtime |
+| `admin-latest` | Admin variant: **DSH 0.2.3-alpha.2 pre-installed**, works out of the box; admin page to pick/install/switch versions | same as Full Tools (pnpm, uv) + manager service; keeps python3/build-essential to compile node-pty at runtime |
 
-> Each tag also has a matching **versioned tag**: `latest` ↔ `<version>`, `devtools-latest` ↔ `devtools-<version>`, `devtools-min-latest` ↔ `devtools-min-<version>`, `admin-latest` ↔ `admin-<version>` (admin pre-installs the latest DSH, so its version tag is the DSH version).
+> Each tag also has a matching **versioned tag**: `latest` ↔ `<version>`, `devtools-latest` ↔ `devtools-<version>`, `devtools-min-latest` ↔ `devtools-min-<version>`, `admin-latest` ↔ `admin-<version>` (admin pre-installs DSH 0.2.3-alpha.2, so its version tag is the DSH version).
 
 **A simple example:**
 
@@ -91,9 +91,9 @@ The run command is identical across all three tags — only the image name (tag)
 
 They also ship **uv** (Python package manager, static binary, no system Python required). Many community MCP servers launch via `uvx` / `uv run` (commonly seen in DSH MCP client configs as `"command": "uvx"`) — without uv those MCPs cannot run.
 
-#### Admin variant (latest DSH pre-installed)
+#### Admin variant (DSH 0.2.3-alpha.2 pre-installed)
 
-The `admin` variant **pre-installs the latest DSH (@next)**. After the container starts, the manager service detects and starts DSH automatically, so `/` serves the DSH UI directly; visiting `/__admin/` opens the admin page, where you can:
+The `admin` variant **pre-installs DSH 0.2.3-alpha.2**. After the container starts, the manager service detects and starts DSH automatically, so `/` serves the DSH UI directly; visiting `/__admin/` opens the admin page, where you can:
 
 - Browse available versions of `@deepseek-ai/dsh` (dist-tags like `latest`/`next` plus the full list) and **install / switch** versions, with live install logs;
 - Configure the **npm registry (NPM_CONFIG_REGISTRY)** manually: the input field **auto-fills the default** (env `NPM_CONFIG_REGISTRY` or the official registry) and the **last-saved value**, and shows the effective value; you can restore the default or clear it with one click. Priority: **page config > env `NPM_CONFIG_REGISTRY` > default**;
@@ -139,6 +139,8 @@ docker run -d \
 When this repository's `main` branch is updated, GitHub Actions automatically builds and publishes:
 
 ```bash
+docker pull ghcr.io/minghuiliu/deepseek-harness-docker:0.2.3-alpha.2
+# or use the rolling tag
 docker pull ghcr.io/minghuiliu/deepseek-harness-docker:latest
 ```
 
